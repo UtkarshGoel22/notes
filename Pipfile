@@ -1,0 +1,23 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[packages]
+argon2-cffi = "~=23.1.0"
+Flask = "~=3.0.2"
+Flask-Limiter = "~=3.5.1"
+Flask-PyMongo = "~=2.3.0"
+flask-cors = "~=4.0.0"
+marshmallow = "~=3.21.1"
+redis = "~=5.0.3"
+
+[dev-packages]
+black = "*"
+isort = "*"
+pytest = "*"
+python-dotenv = "*"
+coverage = {extras = ["toml"], version = "*"}
+
+[requires]
+python_version = "3.10"
