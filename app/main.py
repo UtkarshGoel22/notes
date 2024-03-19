@@ -6,8 +6,66 @@ from http import HTTPStatus
 
 from flask import Response
 
-from app.settings import LIMITER
+from app.base import BaseAuthView
+from app.enums import ResponseMessages
+from app.exceptions import IncorrectUsernameOrPasswordException, UserAlreadyExistsException
+from app.serializers import SigninRequestSchema, SignupRequestSchema
+from app.settings import LOGGER
+from app.user import CreateUser, LoginUser
+from app.utils import make_response
 
-@LIMITER.limit("100/hour;10/minute")
-def signup() -> tuple[Response, HTTPStatus]:
-    return "Success", HTTPStatus.OK
+
+class SignupView(BaseAuthView):
+    """
+    View class for user signup
+    """
+    
+    payload_schema = SignupRequestSchema
+    processor_class = CreateUser
+    success_message = ResponseMessages.USER_CREATED_SUCCESSFULLY.value
+    
+    def post(self) -> tuple[Response, HTTPStatus]:
+        """
+        This endpoint handles the request for user signup.
+        1. Validates incoming request data.
+        2. Checks if the user with the given username already exists.
+        3. Hash the password.
+        3. Creates new user.
+        
+        Returns:
+            tuple[Response, HTTPStatus]: Response, status code.
+        """
+        
+        try:
+            return super().post()
+        except UserAlreadyExistsException as error:
+            LOGGER.warning(f"Error occurred during signup: {error.message}")
+            return make_response(message=error.message, status_code=error.status_code)
+
+
+class SigninView(BaseAuthView):
+    """
+    View class for user signin
+    """
+    
+    payload_schema = SigninRequestSchema
+    processor_class = LoginUser
+    success_message = ResponseMessages.USER_LOGGED_IN_SUCCESSFULLY.value
+    
+    def post(self) -> tuple[Response, HTTPStatus]:
+        """
+        This endpoint handles the request for user signin.
+        1. Validates incoming request data.
+        2. Checks if the user with the given username exists.
+        3. Verifies the password.
+        3. Generates and returns a jwt token.
+        
+        Returns:
+            tuple[Response, HTTPStatus]: Response, status code
+        """
+        
+        try:
+            return super().post()
+        except IncorrectUsernameOrPasswordException as error:
+            LOGGER.warning(f"Error occurred during signin: {error.message}")
+            return make_response(message=error.message, status_code=error.status_code)
