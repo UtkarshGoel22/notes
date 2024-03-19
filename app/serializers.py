@@ -60,9 +60,15 @@ class BaseAuthRequestSchema(BaseSchema):
     username = fields.Email(required=True)
 
 
+class SigninRequestSchema(BaseAuthRequestSchema):
+    """
+    User signin request schema
+    """
+
+
 class SignupRequestSchema(BaseAuthRequestSchema):
     """
-    User signup schema
+    User signup request schema
     """
     
     first_name = fields.String(

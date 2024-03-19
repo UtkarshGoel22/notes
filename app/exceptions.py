@@ -18,6 +18,15 @@ class BaseHTTPException(Exception):
         self.status_code = status_code or self.status_code
 
 
+class IncorrectUsernameOrPasswordException(BaseHTTPException):
+    """
+    Incorrect username or password exception.
+    """
+    
+    message = ExceptionMessages.INCORRECT_USERNAME_OR_PASSWORD.value
+    status_code = HTTPStatus.UNAUTHORIZED
+
+
 class UserAlreadyExistsException(BaseHTTPException):
     """
     User already exists exception

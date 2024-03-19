@@ -10,10 +10,10 @@ from flask.views import MethodView
 from marshmallow import Schema, ValidationError
 
 from app.enums import ResponseMessages
-from app.exceptions import UserAlreadyExistsException
-from app.serializers import SignupRequestSchema
+from app.exceptions import IncorrectUsernameOrPasswordException, UserAlreadyExistsException
+from app.serializers import SigninRequestSchema, SignupRequestSchema
 from app.settings import LIMITER, LOGGER
-from app.user import CreateUser
+from app.user import CreateUser, LoginUser
 from app.utils import make_response
 
 
@@ -106,4 +106,32 @@ class SignupView(BaseAuthView):
             return super().post()
         except UserAlreadyExistsException as error:
             LOGGER.warning(f"Error occurred during signup: {error.message}")
+            return make_response(message=error.message, status_code=error.status_code)
+
+
+class SigninView(BaseAuthView):
+    """
+    View class for user signin
+    """
+    
+    payload_schema = SigninRequestSchema
+    processor_class = LoginUser
+    success_message = ResponseMessages.USER_LOGGED_IN_SUCCESSFULLY.value
+    
+    def post(self) -> tuple[Response, HTTPStatus]:
+        """
+        This endpoint handles the request for user signin.
+        1. Validates incoming request data.
+        2. Checks if the user with the given username exists.
+        3. Verifies the password.
+        3. Generates and returns a jwt token.
+        
+        Returns:
+            tuple[Response, HTTPStatus]: Response, status code
+        """
+        
+        try:
+            return super().post()
+        except IncorrectUsernameOrPasswordException as error:
+            LOGGER.warning(f"Error occurred during signin: {error.message}")
             return make_response(message=error.message, status_code=error.status_code)

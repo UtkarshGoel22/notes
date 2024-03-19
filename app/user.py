@@ -2,14 +2,17 @@
 User Module
 """
 
+from datetime import datetime, timedelta
 from abc import ABC, abstractmethod
 
+import jwt
 from pymongo.results import InsertOneResult
 
-from app.exceptions import UserAlreadyExistsException
+from app.constants import ACCESS_TOKEN_VALIDITY
+from app.exceptions import IncorrectUsernameOrPasswordException, UserAlreadyExistsException
 from app.serializers import CreateUserDocumentSchema
-from app.settings import MONGO_CLIENT
-from app.utils import argon2id_hasher
+from app.settings import JWT_SECRET_KEY, MONGO_CLIENT
+from app.utils import argon2id_hasher, get_current_datetime
 
 
 class User(ABC):
@@ -84,3 +87,46 @@ class CreateUser(User):
         result: InsertOneResult = MONGO_CLIENT.db.users.insert_one(user_data)
 
         return {"user_id": str(result.inserted_id)}
+    
+
+class LoginUser(User):
+    """
+    Class for user login.
+    """
+    
+    def process(self) -> dict:
+        """
+        Function for user login.
+        1. Check if the user with the given username exists.
+        2. Hash the password and verify it with the saved password.
+        3. Generate and return a jwt token.
+
+        Raises:
+            IncorrectUsernameOrPasswordException: When either the username or password is incorrect.
+            HashingError: When some problem is encountered while hashing password.
+
+        Returns:
+            dict: Response data containing access token.
+        """
+        
+        user: dict = self.fetch_user()
+        if not user:
+            raise IncorrectUsernameOrPasswordException()
+        
+        hashed_password: str = self.hash_password()
+        if (hashed_password != user["password"]):
+            raise IncorrectUsernameOrPasswordException()
+        
+        current_datetime: datetime = get_current_datetime()
+
+        access_token: str = jwt.encode(
+            {
+                "username": user["username"],
+                "password": hashed_password,
+                "iat": current_datetime,
+                "exp": current_datetime + timedelta(days=ACCESS_TOKEN_VALIDITY)
+            },
+            JWT_SECRET_KEY
+        )
+        
+        return {"access_token": access_token}

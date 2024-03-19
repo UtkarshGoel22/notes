@@ -33,6 +33,7 @@ class ExceptionMessages(Enum):
     Enum for exception messages
     """
     
+    INCORRECT_USERNAME_OR_PASSWORD = "Incorrect username or password."
     USER_ALREADY_EXISTS = "User already exists."
 
 
@@ -44,3 +45,4 @@ class ResponseMessages(Enum):
     INVALID_REQUEST_DATA = "Invalid request data."
     SOMETHING_WENT_WRONG = "Something went wrong, please try again."
     USER_CREATED_SUCCESSFULLY = "User created successfully."
+    USER_LOGGED_IN_SUCCESSFULLY = "User logged in successfully."

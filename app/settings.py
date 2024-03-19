@@ -24,3 +24,5 @@ LOGGER = logging.getLogger()
 MONGO_CLIENT = PyMongo()
 
 SECRET_SALT_KEY = os.environ.get("SECRET_SALT_KEY")
+
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
