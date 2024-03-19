@@ -4,7 +4,7 @@ Routes Module
 
 from flask import Blueprint, Flask
 
-from app.main import signup
+from app.main import SignupView
 
 api_bp = Blueprint("api_bp", __name__, url_prefix="/api")
 auth_bp = Blueprint("auth_bp", __name__, url_prefix="/auth")
@@ -19,7 +19,7 @@ def register_routes(app: Flask) -> None:
     """
     
     # Auth routes
-    auth_bp.add_url_rule("/signup", view_func=signup, methods=["POST"])
+    auth_bp.add_url_rule("/signup", view_func=SignupView.as_view("signup_view"), methods=["POST"])
     
     # Notes routes
     

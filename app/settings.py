@@ -2,6 +2,7 @@
 Settings Module
 """
 
+import logging
 import os
 
 from flask_limiter import Limiter
@@ -18,4 +19,8 @@ LIMITER = Limiter(
     storage_options={"socket_connect_timeout": 30},
 )
 
+LOGGER = logging.getLogger()
+
 MONGO_CLIENT = PyMongo()
+
+SECRET_SALT_KEY = os.environ.get("SECRET_SALT_KEY")
