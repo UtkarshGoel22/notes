@@ -14,9 +14,9 @@ from app.settings import LIMITER, LOGGER
 from app.utils import make_response
 
 
-class BaseView(MethodView):
+class BaseAuthView(MethodView):
     """
-    Base class for views
+    Base class for auth API views
     """
     
     decorators = [LIMITER.limit("100/hour"), LIMITER.limit("10/minute")]
@@ -24,20 +24,18 @@ class BaseView(MethodView):
     processor_class = None
     success_message: str = None
     
-    def handle_request(self, request_data: dict = None, context: dict = None) -> tuple[Response, HTTPStatus]:
+    def post(self) -> tuple[Response, HTTPStatus]:
         """
-        Function to handle request.
-
-        Args:
-            request_data (dict, optional): Request data. Defaults to None.
-            context (dict, optional): Request args. Defaults to None.
+        Post method for auth API views.
 
         Returns:
-            tuple[Response, HTTPStatus]: Response, status code.
+            tuple[Response, HTTPStatus]: Response, status code
         """
         
+        request_data: dict = request.get_json()
+        
         try:
-            validated_data: dict = self.payload_schema(context=context).load(request_data or {})
+            validated_data: dict = self.payload_schema().load(request_data)
             data: dict = self.processor_class(validated_data).process()
             return make_response(message=self.success_message, data=data)
 
@@ -49,28 +47,7 @@ class BaseView(MethodView):
                 errors={"details": error_messages},
                 status_code=HTTPStatus.BAD_REQUEST
             )
-    
-    def post(self) -> tuple[Response, HTTPStatus]:
-        """
-        Base post method.
 
-        Returns:
-            tuple[Response, HTTPStatus]: Response, status code.
-        """
-        
-        request_data: dict = request.get_json()
-        return self.handle_request(request_data=request_data, context={"request_args": request.args})
-
-
-class BaseAuthView(BaseView):
-    """
-    Base class for auth views
-    """
-    
-    def post(self) -> tuple[Response, HTTPStatus]:
-        
-        try:
-            return super().post()
         except HashingError as error:
             LOGGER.warning(f"Error while hashing access code: {error.args[0]}")
             return make_response(

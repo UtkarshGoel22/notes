@@ -10,6 +10,7 @@ from pymongo.results import InsertOneResult
 
 from app.constants import ACCESS_TOKEN_VALIDITY
 from app.exceptions import IncorrectUsernameOrPasswordException, UserAlreadyExistsException
+from app.helpers import fetch_user
 from app.serializers import CreateUserDocumentSchema
 from app.settings import JWT_SECRET_KEY, MONGO_CLIENT
 from app.utils import argon2id_hasher, get_current_datetime
@@ -29,16 +30,6 @@ class User(ABC):
         """
 
         self.request_data = validated_data
-
-    def fetch_user(self) -> dict:
-        """
-        Function to fetch user from the database.
-        
-        Returns:
-            dict: User document if the user exists in the database.
-        """
-        
-        return MONGO_CLIENT.db.users.find_one({"isActive": True, "username": self.request_data["username"]})
 
     def hash_password(self) -> str:
         """
@@ -77,7 +68,7 @@ class CreateUser(User):
             dict: Response data containing user id of the newly created user.
         """
         
-        if self.fetch_user():
+        if fetch_user(self.request_data["username"]):
             raise UserAlreadyExistsException()
 
         self.request_data["password"] = self.hash_password()
@@ -109,7 +100,7 @@ class LoginUser(User):
             dict: Response data containing access token.
         """
         
-        user: dict = self.fetch_user()
+        user: dict = MONGO_CLIENT.db.users.find_one({"isActive": True, "username": self.request_data["username"]})
         if not user:
             raise IncorrectUsernameOrPasswordException()
         
@@ -122,7 +113,6 @@ class LoginUser(User):
         access_token: str = jwt.encode(
             {
                 "username": user["username"],
-                "password": hashed_password,
                 "iat": current_datetime,
                 "exp": current_datetime + timedelta(days=ACCESS_TOKEN_VALIDITY)
             },
