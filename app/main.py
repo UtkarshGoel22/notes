@@ -8,9 +8,14 @@ from flask import Response
 
 from app.base import BaseAuthView, BaseNoteView
 from app.enums import ResponseMessages
-from app.exceptions import IncorrectUsernameOrPasswordException, UserAlreadyExistsException
-from app.notes import CreateNote
-from app.serializers import CreateNoteRequestSchema, SigninRequestSchema, SignupRequestSchema
+from app.exceptions import (
+    DocumentNotExistsException,
+    ForbiddenAccessException,
+    IncorrectUsernameOrPasswordException,
+    UserAlreadyExistsException,
+)
+from app.notes import CreateNote, GetNotes
+from app.serializers import CreateNoteRequestSchema, NoteAPIRequestSchema, SigninRequestSchema, SignupRequestSchema
 from app.settings import LOGGER
 from app.user import CreateUser, LoginUser
 from app.utils import make_response
@@ -80,3 +85,31 @@ class CreateNoteView(BaseNoteView):
     payload_schema = CreateNoteRequestSchema
     processor_class = CreateNote
     success_message = ResponseMessages.NOTE_CREATED_SUCCESSFULLY.value
+
+
+class GetNotesView(BaseNoteView):
+    """
+    View class to get notes of a user
+    """
+
+    payload_schema = NoteAPIRequestSchema
+    processor_class = GetNotes
+    success_message = ResponseMessages.NOTE_FETCHED_SUCCESSFULLY.value
+    
+    def get(self, note_id: str = None) -> tuple[Response, HTTPStatus]:
+        """
+        Get method for fetching notes of a user.
+        If note_id is present then fetch only that note otherwise fetch all the notes.
+
+        Args:
+            note_id (str, optional): Note id. Defaults to None.
+
+        Returns:
+            tuple[Response, HTTPStatus]: _description_
+        """
+
+        try:
+            return super().get(note_id)
+        except (DocumentNotExistsException, ForbiddenAccessException) as error:
+            LOGGER.warning(f"Error occurred while fetching note(s): {error}")
+            return make_response(message=error.message, status_code=error.status_code)

@@ -8,7 +8,7 @@ from bson import ObjectId
 from pymongo.results import InsertOneResult
 
 from app.exceptions import DocumentNotExistsException, ForbiddenAccessException
-from app.serializers import CreateNoteDocumentSchema
+from app.serializers import CreateNoteDocumentSchema, NotesSchema
 from app.settings import MONGO_CLIENT
 from app.utils import get_current_datetime
 
@@ -113,3 +113,34 @@ class CreateNote(Notes):
                 )
                 session.commit_transaction()
                 return {"note_id": str(note_id)}
+
+
+class GetNotes(Notes):
+    """
+    Class for fetching notes
+    """
+    
+    def process(self) -> dict:
+        """
+        Function for fetching note(s).
+        1. If note with the note_id .
+            1.1 Check if the note exists.
+            1.2 Check whether the user has access to the note.
+        2. If note_id is not present then fetch all the notes of the user.
+        
+        Raises:
+            DocumentNotExistsException: When the note document does not exist.
+            ForbiddenAccessException: When user does not have read access of the note.
+
+        Returns:
+            dict: Containing notes.
+        """
+
+        if self.request_data.get("note_id"):
+            notes: list[dict] = [self.fetch_note()]
+            self.has_read_access(notes[0])
+        else:
+            notes: list[dict] = list(MONGO_CLIENT.db.notes.find(
+                {"_id": {"$in": [*self.user["notes"], *self.user["sharedNotes"]]}, "isActive": True},
+            ))
+        return NotesSchema().dump({"notes": notes})

@@ -140,3 +140,44 @@ class CreateNoteDocumentSchema(BaseMongoSchema):
     author = ObjectIdField(required=True)
     body = fields.String(required=True)
     title = fields.String(required=True)
+
+
+class NoteAPIRequestSchema(BaseSchema):
+    """
+    Note API request schema
+    """
+    
+    note_id = fields.String(required=False)
+    
+    @pre_load
+    def transform(self, data: dict, *args, **kwargs) -> dict:
+        """
+        Function to transform data before loading.
+        Adds note_id field in the data.
+        """
+        
+        note_id: str = self.context.get("note_id")
+        if note_id:
+            data["note_id"] = note_id
+        return data
+
+
+class NoteDocumentSchema(BaseSchema):
+    """
+    Note document schema
+    """
+
+    _id = ObjectIdField()
+    _createdAt = fields.DateTime()
+    _lastModifiedAt = fields.DateTime()
+    author = ObjectIdField()
+    title = fields.String()
+    body = fields.String()
+
+
+class NotesSchema(BaseSchema):
+    """
+    Notes schema
+    """
+    
+    notes = fields.List(fields.Nested(NoteDocumentSchema), required=True)
