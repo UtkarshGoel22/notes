@@ -197,8 +197,6 @@ class UpdateNoteRequestSchema(NoteAPIRequestSchema):
         Function to validate update note request data.
         Case: Empty payload i.e. nothing is updated in the note.
         """
-        
-        print(data)
 
         if not data.get("title") and not data.get("body"):
             raise ValidationError(message="Atleast title or body should be updated.", field_name="title")
