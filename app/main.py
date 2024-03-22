@@ -6,10 +6,11 @@ from http import HTTPStatus
 
 from flask import Response
 
-from app.base import BaseAuthView
+from app.base import BaseAuthView, BaseNoteView
 from app.enums import ResponseMessages
 from app.exceptions import IncorrectUsernameOrPasswordException, UserAlreadyExistsException
-from app.serializers import SigninRequestSchema, SignupRequestSchema
+from app.notes import CreateNote
+from app.serializers import CreateNoteRequestSchema, SigninRequestSchema, SignupRequestSchema
 from app.settings import LOGGER
 from app.user import CreateUser, LoginUser
 from app.utils import make_response
@@ -69,3 +70,13 @@ class SigninView(BaseAuthView):
         except IncorrectUsernameOrPasswordException as error:
             LOGGER.warning(f"Error occurred during signin: {error.message}")
             return make_response(message=error.message, status_code=error.status_code)
+
+
+class CreateNoteView(BaseNoteView):
+    """
+    View class for creating a new note
+    """
+
+    payload_schema = CreateNoteRequestSchema
+    processor_class = CreateNote
+    success_message = ResponseMessages.NOTE_CREATED_SUCCESSFULLY.value
