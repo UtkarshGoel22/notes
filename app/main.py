@@ -9,15 +9,18 @@ from flask import Response
 from app.base import BaseAuthView, BaseNoteView
 from app.enums import ResponseMessages
 from app.exceptions import (
+    AlreadySharedException,
+    CannotShareNoteToYourselfException,
     DocumentNotExistsException,
     ForbiddenAccessException,
     IncorrectUsernameOrPasswordException,
     UserAlreadyExistsException,
 )
-from app.notes import CreateNote, DeleteNote, GetNotes, UpdateNote
+from app.notes import CreateNote, DeleteNote, GetNotes, ShareNote, UpdateNote
 from app.serializers import (
     CreateNoteRequestSchema,
     NoteAPIRequestSchema,
+    ShareNoteRequestSchema,
     SigninRequestSchema,
     SignupRequestSchema,
     UpdateNoteRequestSchema,
@@ -172,4 +175,36 @@ class UpdateNoteView(BaseNoteView):
             return super().put(note_id)
         except (DocumentNotExistsException, ForbiddenAccessException) as error:
             LOGGER.warning(f"Error occurred while updating note: {error}")
+            return make_response(message=error.message, status_code=error.status_code)
+
+
+class ShareNoteView(BaseNoteView):
+    """
+    View class to share a note to another user
+    """
+
+    payload_schema = ShareNoteRequestSchema
+    processor_class = ShareNote
+    success_message = ResponseMessages.NOTE_SHARED_SUCCESSFULLY.value
+    
+    def post(self, note_id: str) -> tuple[Response, HTTPStatus]:
+        """
+        Post method for sharing note with another user.
+
+        Args:
+            note_id (str): Note id.
+
+        Returns:
+            tuple[Response, HTTPStatus]: Response, status code.
+        """
+        
+        try:
+            return super().post(note_id)
+        except (
+            AlreadySharedException,
+            CannotShareNoteToYourselfException,
+            DocumentNotExistsException,
+            ForbiddenAccessException,
+        ) as error:
+            LOGGER.warning(f"Error occurred while sharing note to another user: {error}")
             return make_response(message=error.message, status_code=error.status_code)

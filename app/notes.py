@@ -7,7 +7,13 @@ from abc import ABC, abstractmethod
 from bson import ObjectId
 from pymongo.results import InsertOneResult
 
-from app.exceptions import DocumentNotExistsException, ForbiddenAccessException
+from app.exceptions import (
+    AlreadySharedException,
+    CannotShareNoteToYourselfException,
+    DocumentNotExistsException,
+    ForbiddenAccessException,
+)
+from app.helpers import fetch_user
 from app.serializers import CreateNoteDocumentSchema, NotesSchema
 from app.settings import MONGO_CLIENT
 from app.utils import get_current_datetime
@@ -197,6 +203,72 @@ class UpdateNote(Notes):
                 self.has_write_access(note)
                 MONGO_CLIENT.db.notes.update_one(
                     {"_id": note["_id"], "isActive": True},
-                    {"$set": {**self.request_data, "_lastModifiedAt": get_current_datetime()}}
+                    {
+                        "$set": {
+                            "body": self.request_data["body"],
+                            "title": self.request_data["title"],
+                            "_lastModifiedAt": get_current_datetime(),
+                        },
+                    },
+                )
+                session.commit_transaction()
+
+
+class ShareNote(Notes):
+    """
+    Class for sharing a note
+    """
+    
+    def check_if_note_can_be_shared(self, note: dict, user_to_share: dict) -> None:
+        """
+        Function to check if a note can be shared.
+
+        Args:
+            note (dict): Note document.
+            user_to_share (dict): User document to whom the note is to be shared.
+
+        Raises:
+            CannotShareNoteToYourselfException: When the user is trying to share a note to himself.
+            AlreadySharedException: When the note is already shared with the user.
+        """
+
+        if user_to_share["_id"] == note["author"]:
+            raise CannotShareNoteToYourselfException()
+
+        if note["_id"] in user_to_share["sharedNotes"]:
+            raise AlreadySharedException()
+
+    def process(self):
+        """
+        Function to share a note with another user.
+        1. Check if the note exists.
+        2. Check whether the user has write access to the note.
+        3. Check if user is trying to share the note to himself.
+        4. Check if the note is already shared.
+        5. Share the note with another user.
+
+        Raises:
+            DocumentNotExistsException: When the note or the user document does not exist.
+            ForbiddenAccessException: When user does not have write access of the note.
+            CannotShareNoteToYourselfException: When the user is trying to share a note to himself.
+            AlreadySharedException: When the note is already shared with the user.
+        """
+        
+        with MONGO_CLIENT.cx.start_session() as session:
+            with session.start_transaction():
+                note : dict = self.fetch_note()
+                self.has_write_access(note)
+                user_to_share: dict = fetch_user(self.request_data["share_with"])
+                if not user_to_share:
+                    raise DocumentNotExistsException(
+                        message="The user you are trying to share the note with doesn't exist."
+                    )
+                self.check_if_note_can_be_shared(note, user_to_share)
+                MONGO_CLIENT.db.users.update_one(
+                    {"_id": user_to_share["_id"], "isActive": True},
+                    {
+                        "$push": {"sharedNotes": note["_id"]},
+                        "$set": {"_lastModifiedAt": get_current_datetime()},
+                    }
                 )
                 session.commit_transaction()

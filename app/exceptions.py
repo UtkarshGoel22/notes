@@ -26,6 +26,24 @@ class BaseHTTPException(Exception):
         self.status_code = status_code or self.status_code
 
 
+class AlreadySharedException(BaseHTTPException):
+    """
+    Already shared exception
+    """
+
+    message = ExceptionMessages.NOTE_ALREADY_SHARED.value
+    status_code = HTTPStatus.BAD_REQUEST
+
+
+class CannotShareNoteToYourselfException(BaseHTTPException):
+    """
+    Cannot share a note to your self exception
+    """
+
+    message = ExceptionMessages.NOTE_CANNOT_BE_SHARED_WITH_YOURSELF.value
+    status_code = HTTPStatus.BAD_REQUEST
+
+
 class DocumentNotExistsException(BaseHTTPException):
     """
     Document not exists in the database exception

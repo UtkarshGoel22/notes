@@ -202,3 +202,11 @@ class UpdateNoteRequestSchema(NoteAPIRequestSchema):
 
         if not data.get("title") and not data.get("body"):
             raise ValidationError(message="Atleast title or body should be updated.", field_name="title")
+
+
+class ShareNoteRequestSchema(NoteAPIRequestSchema):
+    """
+    Share note request schema
+    """
+    
+    share_with = fields.Email(required=True)
