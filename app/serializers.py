@@ -181,3 +181,24 @@ class NotesSchema(BaseSchema):
     """
     
     notes = fields.List(fields.Nested(NoteDocumentSchema), required=True)
+
+
+class UpdateNoteRequestSchema(NoteAPIRequestSchema):
+    """
+    Update note request schema
+    """
+    
+    title = fields.String()
+    body = fields.String()
+    
+    @validates_schema
+    def validate_payload(self, data: dict, **kwargs) -> None:
+        """
+        Function to validate update note request data.
+        Case: Empty payload i.e. nothing is updated in the note.
+        """
+        
+        print(data)
+
+        if not data.get("title") and not data.get("body"):
+            raise ValidationError(message="Atleast title or body should be updated.", field_name="title")

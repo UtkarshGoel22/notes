@@ -14,8 +14,14 @@ from app.exceptions import (
     IncorrectUsernameOrPasswordException,
     UserAlreadyExistsException,
 )
-from app.notes import CreateNote, DeleteNote, GetNotes
-from app.serializers import CreateNoteRequestSchema, NoteAPIRequestSchema, SigninRequestSchema, SignupRequestSchema
+from app.notes import CreateNote, DeleteNote, GetNotes, UpdateNote
+from app.serializers import (
+    CreateNoteRequestSchema,
+    NoteAPIRequestSchema,
+    SigninRequestSchema,
+    SignupRequestSchema,
+    UpdateNoteRequestSchema,
+)
 from app.settings import LOGGER
 from app.user import CreateUser, LoginUser
 from app.utils import make_response
@@ -136,7 +142,34 @@ class DeleteNoteView(BaseNoteView):
         """
         
         try:
-            return super().get(note_id)
+            return super().delete(note_id)
         except (DocumentNotExistsException, ForbiddenAccessException) as error:
-            LOGGER.warning(f"Error occurred while deleting note(s): {error}")
+            LOGGER.warning(f"Error occurred while deleting note: {error}")
+            return make_response(message=error.message, status_code=error.status_code)
+
+
+class UpdateNoteView(BaseNoteView):
+    """
+    View class to update note of a user
+    """
+
+    payload_schema = UpdateNoteRequestSchema
+    processor_class = UpdateNote
+    success_message = ResponseMessages.NOTE_UPDATED_SUCCESSFULLY.value
+    
+    def put(self, note_id: str) -> tuple[Response, HTTPStatus]:
+        """
+        Put method for updating a note.
+
+        Args:
+            note_id (str): Note id.
+
+        Returns:
+            tuple[Response, HTTPStatus]: Response, status code.
+        """
+        
+        try:
+            return super().put(note_id)
+        except (DocumentNotExistsException, ForbiddenAccessException) as error:
+            LOGGER.warning(f"Error occurred while updating note: {error}")
             return make_response(message=error.message, status_code=error.status_code)

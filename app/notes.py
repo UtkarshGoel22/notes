@@ -172,3 +172,31 @@ class DeleteNote(Notes):
                     {"$set": {"isActive": False, "_lastModifiedAt": get_current_datetime()}}
                 )
                 session.commit_transaction()
+
+
+class UpdateNote(Notes):
+    """
+    Class for updating a note
+    """
+    
+    def process(self):
+        """
+        Function to update a note.
+        1. Check if the note exists.
+        2. Check whether the user has access to the note.
+        3. Update the note.
+        
+        Raises:
+            DocumentNotExistsException: When the note document does not exist.
+            ForbiddenAccessException: When user does not have write access of the note.
+        """
+
+        with MONGO_CLIENT.cx.start_session() as session:
+            with session.start_transaction():
+                note : dict = self.fetch_note()
+                self.has_write_access(note)
+                MONGO_CLIENT.db.notes.update_one(
+                    {"_id": note["_id"], "isActive": True},
+                    {"$set": {**self.request_data, "_lastModifiedAt": get_current_datetime()}}
+                )
+                session.commit_transaction()

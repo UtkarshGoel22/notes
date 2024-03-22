@@ -49,6 +49,7 @@ class ResponseMessages(Enum):
     NOTE_CREATED_SUCCESSFULLY = "Note created successfully."
     NOTE_DELETED_SUCCESSFULLY = "Note deleted successfully."
     NOTE_FETCHED_SUCCESSFULLY = "Note(s) fetched successfully."
+    NOTE_UPDATED_SUCCESSFULLY = "Note updated successfully."
     SOMETHING_WENT_WRONG = "Something went wrong, please try again."
     USER_CREATED_SUCCESSFULLY = "User created successfully."
     USER_LOGGED_IN_SUCCESSFULLY = "User logged in successfully."
