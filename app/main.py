@@ -4,9 +4,9 @@ Main Module
 
 from http import HTTPStatus
 
-from flask import Response
+from flask import Response, request
 
-from app.base import BaseAuthView, BaseNoteView
+from app.base import BaseAuthView, BaseAuthenticationView, BaseNoteView
 from app.enums import ResponseMessages
 from app.exceptions import (
     AlreadySharedException,
@@ -16,10 +16,11 @@ from app.exceptions import (
     IncorrectUsernameOrPasswordException,
     UserAlreadyExistsException,
 )
-from app.notes import CreateNote, DeleteNote, GetNotes, ShareNote, UpdateNote
+from app.notes import CreateNote, DeleteNote, GetNotes, SearchNotes, ShareNote, UpdateNote
 from app.serializers import (
     CreateNoteRequestSchema,
     NoteAPIRequestSchema,
+    SearchNoteRequestSchema,
     ShareNoteRequestSchema,
     SigninRequestSchema,
     SignupRequestSchema,
@@ -208,3 +209,23 @@ class ShareNoteView(BaseNoteView):
         ) as error:
             LOGGER.warning(f"Error occurred while sharing note to another user: {error}")
             return make_response(message=error.message, status_code=error.status_code)
+
+
+class SearchNotesView(BaseAuthenticationView):
+    """
+    View class to search for notes based on keyword
+    """
+    
+    payload_schema = SearchNoteRequestSchema
+    processor_class = SearchNotes
+    success_message = ResponseMessages.NOTE_FETCHED_SUCCESSFULLY.value
+    
+    def get(self) -> tuple[Response, HTTPStatus]:
+        """
+        Get method for searching notes.
+
+        Returns:
+            tuple[Response, HTTPStatus]: Response, status code.
+        """
+
+        return self.handle_request({}, {"q": request.args.get("q")})

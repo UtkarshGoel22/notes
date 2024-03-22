@@ -210,3 +210,23 @@ class ShareNoteRequestSchema(NoteAPIRequestSchema):
     """
     
     share_with = fields.Email(required=True)
+    
+
+class SearchNoteRequestSchema(BaseSchema):
+    """
+    Search note request schema
+    """
+    
+    q = fields.String(required=True)
+    
+    @pre_load
+    def transform(self, data: dict, *args, **kwargs) -> dict:
+        """
+        Function to transform data before loading.
+        Adds q field in the data.
+        """
+        
+        q: str = self.context.get("q")
+        if q:
+            data["q"] = q
+        return data

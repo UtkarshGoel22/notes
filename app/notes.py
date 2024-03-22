@@ -272,3 +272,22 @@ class ShareNote(Notes):
                     }
                 )
                 session.commit_transaction()
+
+
+class SearchNotes(Notes):
+    """
+    Class for searching notes
+    """
+
+    def process(self) -> dict:
+        """
+        Function to search notes based on keywords.
+
+        Returns:
+            dict: Notes whose title or body contain the keywords.
+        """
+
+        notes = list(
+            MONGO_CLIENT.db.notes.find({"author": self.user["_id"], "$text": {"$search": self.request_data["q"]}})
+        )
+        return NotesSchema().dump({"notes": notes})

@@ -8,6 +8,7 @@ from app.main import (
     CreateNoteView,
     DeleteNoteView,
     GetNotesView,
+    SearchNotesView,
     ShareNoteView,
     SigninView,
     SignupView,
@@ -37,6 +38,7 @@ def register_routes(app: Flask) -> None:
     notes_bp.add_url_rule("/<note_id>", view_func=DeleteNoteView.as_view("delete_note"), methods=["DELETE"])
     notes_bp.add_url_rule("/<note_id>", view_func=UpdateNoteView.as_view("update_note"), methods=["PUT"])
     notes_bp.add_url_rule("/<note_id>/share", view_func=ShareNoteView.as_view("share_note"), methods=["POST"])
+    api_bp.add_url_rule("/search", view_func=SearchNotesView.as_view("search_notes"), methods=["GET"])
     
     api_bp.register_blueprint(auth_bp)
     api_bp.register_blueprint(notes_bp)
