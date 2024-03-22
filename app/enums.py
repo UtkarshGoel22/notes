@@ -32,8 +32,13 @@ class ExceptionMessages(Enum):
     """
     Enum for exception messages
     """
-    
+
+    DOCUMENT_DOES_NOT_EXIST = "Document does not exists."
     INCORRECT_USERNAME_OR_PASSWORD = "Incorrect username or password."
+    INSUFFICIENT_PERMISSIONS = "Insufficient permissions."
+    NOTE_ALREADY_SHARED = "Note is already shared with the user."
+    NOTE_CANNOT_BE_SHARED_WITH_YOURSELF = "Note cannot be shared with yourself."
+    UNAUTHORIZED_ACCESS = "Unauthorized access."
     USER_ALREADY_EXISTS = "User already exists."
 
 
@@ -43,6 +48,11 @@ class ResponseMessages(Enum):
     """
 
     INVALID_REQUEST_DATA = "Invalid request data."
+    NOTE_CREATED_SUCCESSFULLY = "Note created successfully."
+    NOTE_DELETED_SUCCESSFULLY = "Note deleted successfully."
+    NOTE_FETCHED_SUCCESSFULLY = "Note(s) fetched successfully."
+    NOTE_SHARED_SUCCESSFULLY = "Note shared successfully."
+    NOTE_UPDATED_SUCCESSFULLY = "Note updated successfully."
     SOMETHING_WENT_WRONG = "Something went wrong, please try again."
     USER_CREATED_SUCCESSFULLY = "User created successfully."
     USER_LOGGED_IN_SUCCESSFULLY = "User logged in successfully."
