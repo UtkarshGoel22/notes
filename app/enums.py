@@ -47,6 +47,7 @@ class ResponseMessages(Enum):
 
     INVALID_REQUEST_DATA = "Invalid request data."
     NOTE_CREATED_SUCCESSFULLY = "Note created successfully."
+    NOTE_DELETED_SUCCESSFULLY = "Note deleted successfully."
     NOTE_FETCHED_SUCCESSFULLY = "Note(s) fetched successfully."
     SOMETHING_WENT_WRONG = "Something went wrong, please try again."
     USER_CREATED_SUCCESSFULLY = "User created successfully."

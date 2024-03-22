@@ -14,7 +14,7 @@ from app.exceptions import (
     IncorrectUsernameOrPasswordException,
     UserAlreadyExistsException,
 )
-from app.notes import CreateNote, GetNotes
+from app.notes import CreateNote, DeleteNote, GetNotes
 from app.serializers import CreateNoteRequestSchema, NoteAPIRequestSchema, SigninRequestSchema, SignupRequestSchema
 from app.settings import LOGGER
 from app.user import CreateUser, LoginUser
@@ -105,11 +105,38 @@ class GetNotesView(BaseNoteView):
             note_id (str, optional): Note id. Defaults to None.
 
         Returns:
-            tuple[Response, HTTPStatus]: _description_
+            tuple[Response, HTTPStatus]: Response, status code.
         """
 
         try:
             return super().get(note_id)
         except (DocumentNotExistsException, ForbiddenAccessException) as error:
             LOGGER.warning(f"Error occurred while fetching note(s): {error}")
+            return make_response(message=error.message, status_code=error.status_code)
+
+
+class DeleteNoteView(BaseNoteView):
+    """
+    View class to delete note of a user
+    """
+
+    payload_schema = NoteAPIRequestSchema
+    processor_class = DeleteNote
+    success_message = ResponseMessages.NOTE_DELETED_SUCCESSFULLY.value
+    
+    def delete(self, note_id: str) -> tuple[Response, HTTPStatus]:
+        """
+        Delete method for deleting a note.
+
+        Args:
+            note_id (str): Note id.
+
+        Returns:
+            tuple[Response, HTTPStatus]: Response, status code.
+        """
+        
+        try:
+            return super().get(note_id)
+        except (DocumentNotExistsException, ForbiddenAccessException) as error:
+            LOGGER.warning(f"Error occurred while deleting note(s): {error}")
             return make_response(message=error.message, status_code=error.status_code)
