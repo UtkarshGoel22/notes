@@ -201,12 +201,12 @@ class UpdateNote(Notes):
             with session.start_transaction():
                 note : dict = self.fetch_note()
                 self.has_write_access(note)
+                data_to_update: dict = {key: value for key, value in self.request_data.items() if key != "note_id"}
                 MONGO_CLIENT.db.notes.update_one(
                     {"_id": note["_id"], "isActive": True},
                     {
                         "$set": {
-                            "body": self.request_data["body"],
-                            "title": self.request_data["title"],
+                            **data_to_update,
                             "_lastModifiedAt": get_current_datetime(),
                         },
                     },
