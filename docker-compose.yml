@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: bitnami/mongodb:5.0
+    container_name: mongodb
+    environment:
+      MONGODB_REPLICA_SET_MODE: primary
+      ALLOW_EMPTY_PASSWORD: "yes"
+      # EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU:1 # This is required on Apple Silicon https://github.com/docker/for-mac/issues/6620
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis_data:/data/cache"
+
+  backend:
+    build: .
+    command: python run.py
+    container_name: backend
+    depends_on:
+      - mongodb
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      MONGO_URI: "mongodb://mongodb:27017/notes"
+      REDIS_URI: "redis://redis:6379"
+    volumes:
+      - ".:/app"
+
+volumes:
+  mongodb_data:
+  redis_data:

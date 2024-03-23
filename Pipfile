@@ -12,6 +12,7 @@ flask-cors = "~=4.0.0"
 marshmallow = "~=3.21.1"
 pyjwt = "~=2.8.0"
 redis = "~=5.0.3"
+gunicorn = "*"
 
 [dev-packages]
 black = "*"
