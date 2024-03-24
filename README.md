@@ -42,23 +42,23 @@ docker-compose up -d
 app.run(debug=True, load_dotenv=True, port=os.environ.get("PORT"), host="0.0.0.0")
 ```
 
-5. Create index only once during the initial setup. Make sure that the container is running in the background. Skip if already created index.
+5. Create indexes only once during the initial setup. Make sure that the container is running in the background. Skip if already created index.
 
 ```shell
 python create-index.py
 ```
 
-6. Local setup complete now you can test the APIs.
+6. Local setup is complete now you can test the APIs.
 
 ## Technical Details
 
 ### Framework: Flask
 
-Flask has been used due to its simplicity, flexibility, and vibrant ecosystem. Its lightweight and minimalistic design allows to kickstart development quickly while maintaining a high level of customization. It has an extensive community support and well-structured documentation which facilitating rapid development.
+Flask has been used due to its simplicity, flexibility, and vibrant ecosystem. Its lightweight and minimalistic design allows it to kickstart development quickly while maintaining a high level of customization. It has extensive community support and well-structured documentation which facilitates rapid development.
 
 ### Database: MongoDB
 
-MongoDB is selected as the database to store notes data. It offers ACID compliance, extensibility, and support for complex queries, making it suitable for the requirements of this project. Its flexible schema allows to adapt to changes easily, and its scalability ensures that the system can grow as needed.
+MongoDB is selected as the database to store notes data. It offers ACID compliance, extensibility, and support for complex queries, making it suitable for the requirements of this project. Its flexible schema allows it to adapt to changes easily, and its scalability ensures that the system can grow as needed.
 
 ### Rate Limiting: Flask-Limiter
 
@@ -66,466 +66,474 @@ To handle high traffic and prevent abuse, the flask-limiter package is employed.
 
 ### Authentication: argon2-cffi and PyJWT
 
-For security, the project uses argon2id for hashing user password and JWT (JSON Web Token) authentication mechanism. Argon2id provides a robust and flexible solution for securely hashing passwords, helping to safeguard user accounts and enhance overall system security.
+For security, the project uses argon2id for hashing user passwords and a JWT (JSON Web Token) authentication mechanism. Argon2id provides a robust and flexible solution for securely hashing passwords, helping to safeguard user accounts and enhance overall system security.
 
 ### Search Functionality: Text Indexing
 
-To enhance search performance, text indexing is implemented. MongoDB allows the use to create compound indexes for search. This feature enables users to search for notes based on keywords efficiently.
+To enhance search performance, text indexing is implemented. MongoDB allows the use of compound indexes for search. This feature enables users to search for notes based on keywords efficiently.
 
 ## Endpoints
 
 ### 1. POST /api/auth/signup
 
-    - This endpoint is invoked whenever user tries to signup on the platform.
-    - Checks if the user with the given username already exists.
-    - Hashes the password.
-    - Creates new user.
+- This endpoint is invoked whenever a user tries to sign up on the platform.
+- Check if the user with the given username already exists.
+- Hashes the password.
+- Creates new users.
 
-    **Generic Payload**:
-    {
-        "first_name": <string> <A-Z letters and non-consecutive apostrophes(') and/or dashes(-)>,
-        "last_name": <string> <A-Z letters and non-consecutive apostrophes(') and/or dashes(-)>,
-        "username": <string> <Valid email address>,
-        "password": <string> <Alphanumeric with atleast 1 special character and having min length of 6>,
-    }
+**Generic Payload**:
+{
+"first_name": <string> <A-Z letters and non-consecutive apostrophes(') and/or dashes(-)>,
+"last_name": <string> <A-Z letters and non-consecutive apostrophes(') and/or dashes(-)>,
+"username": <string> <Valid email address>,
+"password": <string> <Alphanumeric with at least 1 special character and having min length of 6>,
+}
 
-    **Example Curl**
+**Example Curl**
 
-    ```shell
-    curl --location --request POST 'http://localhost:3000/api/auth/signup' \
-    --header 'Content-Type: application/json' \
-    --data-raw '{
-        "first_name": "John",
-        "last_name": "Doe",
-        "username": "john@email.com",
-        "password": "notes@123"
-    }'
-    ```
+```shell
+curl --location --request POST 'http://localhost:3000/api/auth/signup' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "first_name": "John",
+    "last_name": "Doe",
+    "username": "john@email.com",
+    "password": "notes@123"
+}'
+```
 
-    **Returns**
+**Returns**
 
-    - Case Success: 200
+- Case Success: 200
 
-    ```
-    {
-        "data": {
-            "user_id": <Document id of the user>,
-        },
-        "message": "User created successfully.",
-    }
-    ```
+```
+{
+    "data": {
+        "user_id": <Document id of the user>,
+    },
+    "message": "User created successfully.",
+}
+```
 
-    - Case Failure: 400
+- Case Failure: 400
 
-    ```
-    {
-        "data": {},
-        "errors": <error details>,  (optional)
-        "message": <error message>,
-    }
-    ```
+```
+{
+    "data": {},
+    "errors": <error details>,  (optional)
+    "message": <error message>,
+}
+```
 
 ### 2. POST /api/auth/signin
 
-    - This endpoint is invoked whenever user tries to signin on the platform.
-    - Checks if the user with the given username exists.
-    - Verifies the password.
-    - Generates and returns a jwt token.
+- This endpoint is invoked whenever a user tries to sign in on the platform.
+- Check if the user with the given username exists.
+- Verifies the password.
+- Generates and returns a JWT token.
 
-    **Generic Payload**:
-    {
-        "username": <string> <Valid email address>,
-        "password": <string> <Alphanumeric with atleast 1 special character and having min length of 6>,
-    }
+**Generic Payload**:
 
-    **Example Curl**
+```
+{
+    "username": <string> <Valid email address>,
+    "password": <string> <Alphanumeric with at least 1 special character and having min length of 6>,
+}
+```
 
-    ```shell
-    curl --location --request POST 'http://localhost:3000/api/auth/signin' \
-    --header 'Content-Type: application/json' \
-    --data-raw '{
-        "username": "john@email.com",
-        "password": "password@123"
-    }'
-    ```
+**Example Curl**
 
-    **Returns**
+```shell
+curl --location --request POST 'http://localhost:3000/api/auth/signin' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "username": "john@email.com",
+    "password": "password@123"
+}'
+```
 
-    - Case Success: 200
+**Returns**
 
-    ```
-    {
-        "data": {
-            "access_token": <JWT token>,
-        },
-        "message": "User logged in successfully.",
-    }
-    ```
+- Case Success: 200
 
-    - Case Failure: 400
+```
+{
+    "data": {
+        "access_token": <JWT token>,
+    },
+    "message": "User logged in successfully.",
+}
+```
 
-    ```
-    {
-        "data": {},
-        "errors": <error details>,  (optional)
-        "message": <error message>,
-    }
-    ```
+- Case Failure: 400
+
+```
+{
+    "data": {},
+    "errors": <error details>,  (optional)
+    "message": <error message>,
+}
+```
 
 ### 3. POST /api/notes
 
-    - This endpoint is invoked whenever user tries to create a new note.
-    - Creates new note document.
-    - Appends the note object id in the notes field in user document.
+- This endpoint is invoked whenever a user tries to create a new note.
+- Creates new note document.
+- Appends the note object ID in the notes field in the user document.
 
-    **Generic Payload**:
-    {
-        "body": <string>,
-        "title": <string>,
-    }
+**Generic Payload**:
 
-    **Example Curl**
+```
+{
+    "body": <string>,
+    "title": <string>,
+}
+```
 
-    ```shell
-    curl --location --request POST 'http://localhost:3000/api/notes' \
-    --header 'Authorization: Bearer <Access Token>' \
-    --header 'Content-Type: application/json' \
-    --data '{
-        "body": "Note body.",
-        "title": "Note title."
-    }'
-    ```
+**Example Curl**
 
-    **Returns**
+```shell
+curl --location --request POST 'http://localhost:3000/api/notes' \
+--header 'Authorization: Bearer <Access Token>' \
+--header 'Content-Type: application/json' \
+--data '{
+    "body": "Note body.",
+    "title": "Note title."
+}'
+```
 
-    - Case Success: 200
+**Returns**
 
-    ```
-    {
-        "data": {
-            "note_id": <Note document id>
-        },
-        "message": "Note created successfully."
-    }
-    ```
+- Case Success: 200
 
-    - Case Failure: 400
+```
+{
+    "data": {
+        "note_id": <Note document id>
+    },
+    "message": "Note created successfully."
+}
+```
 
-    ```
-    {
-        "data": {},
-        "errors": <error details>,  (optional)
-        "message": <error message>,
-    }
-    ```
+- Case Failure: 400
 
-    - Case Failure: 401
+```
+{
+    "data": {},
+    "errors": <error details>,  (optional)
+    "message": <error message>,
+}
+```
 
-    ```
-    {
-        "data": {},
-        "message": "Unauthorized access.",
-    }
-    ```
+- Case Failure: 401
+
+```
+
+{
+"data": {},
+"message": "Unauthorized access.",
+}
+
+```
 
 ### 4. GET /api/notes
 
-    - This endpoint is invoked whenever user tries to fetch list of all of his notes.
+- This endpoint is invoked whenever a user tries to fetch a list of all of his notes.
 
-    **Example Curl**
+**Example Curl**
 
-    ```shell
-    curl --location --request GET 'http://localhost:3000/api/notes' \
-    --header 'Authorization: Bearer <Access Token>'
-    ```
+```shell
+curl --location --request GET 'http://localhost:3000/api/notes' \
+--header 'Authorization: Bearer <Access Token>'
+```
 
-    **Returns**
+**Returns**
 
-    - Case Success: 200
+- Case Success: 200
 
-    ```
-    {
-        "data": {
-            "notes": [
-                {
-                    "_createdAt": "2024-03-23T16:38:33.742000",
-                    "_id": "65ff0589649e456940a94ed7",
-                    "_lastModifiedAt": "2024-03-23T16:38:33.742000",
-                    "author": "65ff04a403c46e4bed5faa59",
-                    "body": "Note body",
-                    "title": "Note title"
-                }
-            ]
-        },
-        "message": "Note(s) fetched successfully."
-    }
-    ```
+```
+{
+    "data": {
+        "notes": [
+            {
+                "_createdAt": "2024-03-23T16:38:33.742000",
+                "_id": "65ff0589649e456940a94ed7",
+                "_lastModifiedAt": "2024-03-23T16:38:33.742000",
+                "author": "65ff04a403c46e4bed5faa59",
+                "body": "Note body",
+                "title": "Note title"
+            }
+        ]
+    },
+    "message": "Note(s) fetched successfully."
+}
+```
 
-    - Case Failure: 401
+- Case Failure: 401
 
-    ```
-    {
-        "data": {},
-        "message": "Unauthorized access.",
-    }
-    ```
+```
+{
+    "data": {},
+    "message": "Unauthorized access.",
+}
+```
 
 ### 5. GET /api/notes/<note_id>
 
-    - This endpoint is invoked whenever user tries to fetch a particular note.
-    - Checks whether the user has read access to the note.
+- This endpoint is invoked whenever a user tries to fetch a particular note.
+- Checks whether the user has read access to the note.
 
-    **Example Curl**
+**Example Curl**
 
-    ```shell
-    curl --location --request GET 'http://localhost:3000/api/notes/<note_id>' \
-    --header 'Authorization: Bearer <Access Token>'
-    ```
+```shell
+curl --location --request GET 'http://localhost:3000/api/notes/<note_id>' \
+--header 'Authorization: Bearer <Access Token>'
+```
 
-    **Returns**
+**Returns**
 
-    - Case Success: 200
+- Case Success: 200
 
-    ```
-    {
-        "data": {
-            "notes": [
-                {
-                    "_createdAt": "2024-03-23T16:38:33.742000",
-                    "_id": "65ff0589649e456940a94ed7",
-                    "_lastModifiedAt": "2024-03-23T16:38:33.742000",
-                    "author": "65ff04a403c46e4bed5faa59",
-                    "body": "Note body",
-                    "title": "Note title"
-                }
-            ]
-        },
-        "message": "Note(s) fetched successfully."
-    }
-    ```
+```
+{
+    "data": {
+        "notes": [
+            {
+                "_createdAt": "2024-03-23T16:38:33.742000",
+                "_id": "65ff0589649e456940a94ed7",
+                "_lastModifiedAt": "2024-03-23T16:38:33.742000",
+                "author": "65ff04a403c46e4bed5faa59",
+                "body": "Note body",
+                "title": "Note title"
+            }
+        ]
+    },
+    "message": "Note(s) fetched successfully."
+}
+```
 
-    - Case Failure: 400
+- Case Failure: 400
 
-    ```
-    {
-        "data": {},
-        "errors": <error details>,  (optional)
-        "message": <error message>,
-    }
-    ```
+```
+{
+    "data": {},
+    "errors": <error details>,  (optional)
+    "message": <error message>,
+}
+```
 
-    - Case Failure: 401
+- Case Failure: 401
 
-    ```
-    {
-        "data": {},
-        "message": "Unauthorized access.",
-    }
-    ```
+```
+{
+    "data": {},
+    "message": "Unauthorized access.",
+}
+```
 
 ### 6. DELETE /api/notes/<note_id>
 
-    - This endpoint is invoked when the user tries to delete a note.
-    - Checks if the note exists.
-    - Checks whether the user has access to the note.
-    - Deletes the note.
+- This endpoint is invoked when the user tries to delete a note.
+- Checks if the note exists.
+- Checks whether the user has access to the note.
+- Deletes the note.
 
-    **Example Curl**
+**Example Curl**
 
-    ```shell
-    curl --location --request DELETE 'http://localhost:3000/api/notes/<note_id>' \
-    --header 'Authorization: Bearer <Access Token>'
-    ```
+```shell
+curl --location --request DELETE 'http://localhost:3000/api/notes/<note_id>' \
+--header 'Authorization: Bearer <Access Token>'
+```
 
-    **Returns**
+**Returns**
 
-    - Case Success: 200
+- Case Success: 200
 
-    ```
-    {
-        "data": {},
-        "message": "Note deleted successfully."
-    }
-    ```
+```
+{
+    "data": {},
+    "message": "Note deleted successfully."
+}
+```
 
-    - Case Failure: 400
+- Case Failure: 400
 
-    ```
-    {
-        "data": {},
-        "errors": <error details>,  (optional)
-        "message": <error message>,
-    }
-    ```
+```
+{
+    "data": {},
+    "errors": <error details>,  (optional)
+    "message": <error message>,
+}
+```
 
-    - Case Failure: 401
+- Case Failure: 401
 
-    ```
-    {
-        "data": {},
-        "message": "Unauthorized access.",
-    }
-    ```
+```
+{
+    "data": {},
+    "message": "Unauthorized access.",
+}
+```
 
 ### 7. PUT /api/notes/<note_id>
 
-    - This endpoint is invoked when the user tries to update a note.
-    - Checks if the note exists.
-    - Checks whether the user has access to the note.
-    - Updates the note.
+- This endpoint is invoked when the user tries to update a note.
+- Checks if the note exists.
+- Checks whether the user has access to the note.
+- Updates the note.
 
-    **Generic Payload**:
-    {
-        "body": <string> <at least one of the body or title should be present in the payload>,
-        "title": <string>,
-    }
+**Generic Payload**:
+{
+"body": <string> <at least one of the body or title should be present in the payload>,
+"title": <string>,
+}
 
-    **Example Curl**
+**Example Curl**
 
-    ```shell
-    curl --location --request PUT 'http://localhost:3000/api/notes/<note_id>' \
-    --header 'Authorization: Bearer <Access Token>' \
-    --header 'Content-Type: application/json' \
-    --data '{
-        "body": "Note body",
-        "title": "Note title"
-    }'
-    ```
+```shell
+curl --location --request PUT 'http://localhost:3000/api/notes/<note_id>' \
+--header 'Authorization: Bearer <Access Token>' \
+--header 'Content-Type: application/json' \
+--data '{
+    "body": "Note body",
+    "title": "Note title"
+}'
+```
 
-    **Returns**
+**Returns**
 
-    - Case Success: 200
+- Case Success: 200
 
-    ```
-    {
-        "data": {},
-        "message": "Note updated successfully."
-    }
-    ```
+```
+{
+    "data": {},
+    "message": "Note updated successfully."
+}
+```
 
-    - Case Failure: 400
+- Case Failure: 400
 
-    ```
-    {
-        "data": {},
-        "errors": <error details>,  (optional)
-        "message": <error message>,
-    }
-    ```
+```
+{
+    "data": {},
+    "errors": <error details>,  (optional)
+    "message": <error message>,
+}
+```
 
-    - Case Failure: 401
+- Case Failure: 401
 
-    ```
-    {
-        "data": {},
-        "message": "Unauthorized access.",
-    }
-    ```
+```
+{
+    "data": {},
+    "message": "Unauthorized access.",
+}
+```
 
 ### 8. POST /api/notes/<note_id>/share
 
-    - This endpoint is invoked when the user tries to share a note.
-    - Checks if the note exists.
-    - Checks whether the user has write access to the note.
-    - Checks if user is trying to share the note to himself.
-    - Checks if the note is already shared.
-    - Shares the note with another user.
+- This endpoint is invoked when the user tries to share a note.
+- Checks if the note exists.
+- Checks whether the user has write access to the note.
+- Checks if a user is trying to share the note to himself.
+- Check if the note is already shared.
+- Shares the note with another user.
 
-    **Generic Payload**:
-    {
-        "share_with": <string> <email of the user the note needs to be shared with>
-    }
+**Generic Payload**:
+{
+"share_with": <string> <email of the user the note needs to be shared with>
+}
 
-    **Example Curl**
+**Example Curl**
 
-    ```shell
-    curl --location --request POST 'http://localhost:3000/api/notes/<note_id>/share' \
-    --header 'Authorization: Bearer <Access Token>' \
-    --header 'Content-Type: application/json' \
-    --data-raw '{
-        "share_with": "doe@email.com"
-    }'
-    ```
+```shell
+curl --location --request POST 'http://localhost:3000/api/notes/<note_id>/share' \
+--header 'Authorization: Bearer <Access Token>' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "share_with": "doe@email.com"
+}'
+```
 
-    **Returns**
+**Returns**
 
-    - Case Success: 200
+- Case Success: 200
 
-    ```
-    {
-        "data": {},
-        "message": "Note shared successfully."
-    }
-    ```
+```
+{
+    "data": {},
+    "message": "Note shared successfully."
+}
+```
 
-    - Case Failure: 400
+- Case Failure: 400
 
-    ```
-    {
-        "data": {},
-        "errors": <error details>,  (optional)
-        "message": <error message>,
-    }
-    ```
+```
+{
+    "data": {},
+    "errors": <error details>,  (optional)
+    "message": <error message>,
+}
+```
 
-    - Case Failure: 401
+- Case Failure: 401
 
-    ```
-    {
-        "data": {},
-        "message": "Unauthorized access.",
-    }
-    ```
+```
+{
+    "data": {},
+    "message": "Unauthorized access.",
+}
+```
 
 ### 9. GET /api/search?q=<query>
 
-    - This endpoint is invoked when the user tries to search for notes.
-    - Searches for notes based on the keywords provided.
+- This endpoint is invoked when the user tries to search for notes.
+- Searches for notes based on the keywords provided.
 
-    **Example Curl**
+**Example Curl**
 
-    ```shell
-    curl --location --request GET 'http://localhost:3000/api/search?q=<query>' \
-    --header 'Authorization: Bearer <Access Token>'
-    ```
+```shell
+curl --location --request GET 'http://localhost:3000/api/search?q=<query>' \
+--header 'Authorization: Bearer <Access Token>'
+```
 
-    **Returns**
+**Returns**
 
-    - Case Success: 200
+- Case Success: 200
 
-    ```
-    {
-        "data": {
-            "notes": [
-                {
-                    "_createdAt": "2024-03-23T16:38:33.742000",
-                    "_id": "65ff0589649e456940a94ed7",
-                    "_lastModifiedAt": "2024-03-23T16:47:38.417000",
-                    "author": "65ff04a403c46e4bed5faa59",
-                    "body": "Note body",
-                    "title": "Note title"
-                }
-            ]
-        },
-        "message": "Note(s) fetched successfully."
-    }
-    ```
+```
+{
+    "data": {
+        "notes": [
+            {
+                "_createdAt": "2024-03-23T16:38:33.742000",
+                "_id": "65ff0589649e456940a94ed7",
+                "_lastModifiedAt": "2024-03-23T16:47:38.417000",
+                "author": "65ff04a403c46e4bed5faa59",
+                "body": "Note body",
+                "title": "Note title",
+            }
+        ]
+    },
+    "message": "Note(s) fetched successfully."
+}
+```
 
-    - Case Failure: 400
+- Case Failure: 400
 
-    ```
-    {
-        "data": {},
-        "errors": <error details>,  (optional)
-        "message": <error message>,
-    }
-    ```
+```
+{
+    "data": {},
+    "errors": <error details>,  (optional)
+    "message": <error message>,
+}
+```
 
-    - Case Failure: 401
+- Case Failure: 401
 
-    ```
-    {
-        "data": {},
-        "message": "Unauthorized access.",
-    }
-    ```
+```
+{
+    "data": {},
+    "message": "Unauthorized access.",
+}
+```
